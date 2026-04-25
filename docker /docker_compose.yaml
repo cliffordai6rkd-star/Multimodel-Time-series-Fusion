@@ -1,0 +1,91 @@
+services:
+  # 训练服务：用于启动带 GPU、GUI、USB/输入设备访问能力的训练容器。
+  bishe_train:
+    build:
+      # 构建上下文为当前 docker 目录；dockerfile 指向同目录下的 Dockerfile。
+      context: .
+      dockerfile: Dockerfile
+      # 如果通过 SSH 登录服务器并且需要 GUI 显示，可先在宿主机执行以下指令准备 xauth 文件：
+      # sudo touch /tmp/.docker.xauth
+      # sudo chown $USER:$USER /tmp/.docker.xauth
+      # chmod 600 /tmp/.docker.xauth
+      # xauth nlist $DISPLAY | sed -e 's/^..../ffff/' | xauth -f /tmp/.docker.xauth nmerge -
+      # chmod 644 /tmp/.docker.xauth
+      # 排查命令：ls -la /tmp/.docker.xauth 和 xauth -f /tmp/.docker.xauth list
+    volumes:
+      # 把 docker 目录的上一级挂载到容器 /workspace，方便容器内访问整个项目。
+      - ../:/workspace
+      # 以下为可选数据/代码/SSH 挂载，需要时再取消注释。
+      # - ../../data:/workspace/data
+      # - /mnt/nas/ZML:/mnt/nas/ZML
+      # - $HOME/Code/das-traj-generation/data:/workspace/das_data
+      # - $HOME/Code/hirol:/home/teleophost/zyx
+      # - $HOME/.ssh/id_rsa:/home/teleophost/.ssh/id_rsa
+      # - $HOME/.ssh/id_rsa.pub:/home/teleophost/.ssh/id_rsa.pub
+      # X11 图形界面映射：让容器内程序可以把窗口显示到宿主机。
+      - /tmp/.X11-unix:/tmp/.X11-unix:ro
+      - ${XAUTHORITY:-$HOME/.Xauthority}:${XAUTHORITY:-$HOME/.Xauthority}:ro
+      # - $HOME/.Xauthority:/home/teleophost/.Xauthority
+      # 针对 SSH 到服务器使用 docker 的 GUI 映射支持。
+      # - /tmp/.docker.xauth:/tmp/.docker.xauth:ro
+      # 只读挂载 USB 和输入设备信息，供硬件/手柄/追踪器相关程序查看。
+      - /sys/bus/usb:/sys/bus/usb:ro
+      - /sys/class/input:/sys/class/input:ro
+      # 绑定 HTC TRACKER 的 libsurvive 配置文件。
+      - ${HOME}/.config/libsurvive/config.json:/home/teleophost/.config/libsurvive/config.json
+      # 直接挂载 /dev，允许容器访问 USB、串口、输入设备等硬件。
+      - /dev:/dev
+     
+    environment:
+      # ROS 2 通信域 ID；同一个域内的 ROS 节点才能互相发现。
+      - ROS_DOMAIN_ID=13
+      # GUI 显示相关环境变量。
+      - DISPLAY=${DISPLAY}
+      # 针对 SSH 到服务器使用 docker 的 GUI 映射支持。
+      # - XAUTHORITY=/tmp/.docker.xauth
+      - XAUTHORITY=${XAUTHORITY:-$HOME/.Xauthority}
+      # 显式清空代理，避免容器内网络请求被宿主机代理设置影响。
+      - http_proxy=
+      - https_proxy=
+      - no_proxy=
+      # SDL 图形/音频后端设置，常用于仿真器或可视化程序。
+      - SDL_VIDEODRIVER=x11
+      - SDL_AUDIODRIVER=pulse
+      # 设备权限相关环境变量。
+      - UDEV=1
+      - SHELL=/bin/bash
+      # 如果容器内需要代理，可取消以下配置并改成实际代理地址。
+      # - http_proxy=http://127.0.0.1:7897
+      # - https_proxy=http://127.0.0.1:7897
+      # - no_proxy=localhost,127.0.0.1
+    devices:
+      # 设备映射：给容器访问硬件设备的权限。
+      - /dev:/dev
+      - /dev/bus/usb:/dev/bus/usb
+      - /dev/input:/dev/input
+      # 蓝牙/DBus 支持：需要蓝牙或部分桌面服务时使用。
+      - /var/run/dbus:/var/run/dbus
+      - /run/dbus:/run/dbus
+    # privileged=true 会给容器较高权限，适合硬件调试，但生产环境需谨慎使用。
+    privileged: true
+    # 使用 root 用户运行，避免硬件设备权限不足。
+    user: "0:0"
+    # network_mode: rei
+    # 保持标准输入和 TTY，方便进入容器交互调试。
+    stdin_open: true
+    # 使用所有可见 GPU。
+    gpus: all
+    tty: true
+    # 默认不直接启动训练，而是保持容器运行，用户可 docker exec 进入后手动执行命令。
+    command: ["tail", "-f", "/dev/null"]
+    deploy:
+      resources:
+        # limits:
+        #   memory: 32G
+        #   cpus: '20.0'
+        reservations:
+          devices:
+            # 申请 1 张 NVIDIA GPU，并开启图形、显示、视频和计算能力。
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu, graphics, display, utility, video, compute]
