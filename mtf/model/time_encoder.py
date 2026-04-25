@@ -29,7 +29,7 @@ TimeEncoder 负责把输入形状为 (batch, 2, 1024) 的 high/low 双通道曲�
 
 import torch.nn as nn
 
-from mtf_fusion.model.residualblock1d import ResidualBlock1D
+from mtf.model.residualblock1d import ResidualBlock1D
 
 
 def _config_get(config, key, default=None, group=None, group_key=None):

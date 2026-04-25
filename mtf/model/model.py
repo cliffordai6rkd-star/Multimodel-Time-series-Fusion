@@ -9,8 +9,8 @@
 import torch
 import torch.nn as nn
 
-from mtf_fusion.model.img_encoder import ImageEncoder
-from mtf_fusion.model.time_encoder import TimeEncoder
+from mtf.model.img_encoder import ImageEncoder
+from mtf.model.time_encoder import TimeEncoder
 
 
 def _get(config, key, default):
