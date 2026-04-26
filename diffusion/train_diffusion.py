@@ -1,7 +1,6 @@
-import os 
+import os, time
 import torch
 import torch.nn as nn
-
 
 from tqdm import tqdm
 from train_systems_part.part import TrainSystemPart
@@ -83,7 +82,10 @@ class TrainDiffusion(BaseTrain):
 
 if __name__ == "__main__":
     train_sys = TrainSystemPart()
+    start_time = time.perf_counter()
     args = train_sys.parse_args()
     config = train_sys.load_config(args.config)
     trainer = TrainDiffusion(config)
     trainer.train()
+    train_time = time.perf_counter() - start_time
+    train_sys.print_train_summary(args, trainer, train_time)

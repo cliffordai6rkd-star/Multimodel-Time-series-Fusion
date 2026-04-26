@@ -6,23 +6,29 @@ from train_systems_part.part import TrainSystemPart
 class NoiseScheduler:
     def __init__(self, config, device):
         self.config = config
-        self.num_steps = config.get("num_steps", 100)
-        self.betas_start = 1e-4
-        self.beta_end = 0.02
+        self.diffusion_config = config.get("diffusion",{})
+        self.device = device
+        self.num_steps = self.diffusion_config.get("num_steps", 100)
+        self.beta_start = float(self.diffusion_config.get("beta_start", 1e-4))
+        self.beta_end = float(self.diffusion_config.get("beta_end", 0.02))
+        self.noise_param()
+
+    def noise_param(self):
         self.alphas = 0
         self.alphas_bars = 1
-        beta = torch.linspace(self.betas_start, self.beta_end, self.num_steps, device=device)
-        self.alphas = 1- beta
+        self.betas = torch.linspace(self.beta_start, self.beta_end, self.num_steps, device=self.device)
+
+        self.alphas = 1- self.betas
         self.alphas_bars = torch.cumprod(self.alphas, dim=0)
-        self.device = "cuda:0"
-
-
+        return self.betas, self.alphas, self.alphas_bars
 
     def add_noise(self, x0, noise, t):
         alpha_bars_t = self.alphas_bars[t]
         alpha_bars_t = alpha_bars_t.view(-1, 1, 1)
         xt = torch.sqrt(alpha_bars_t) * x0 + torch.sqrt(1 - alpha_bars_t) * noise
         return xt
+
+
 
 
 if __name__ == "__main__":
