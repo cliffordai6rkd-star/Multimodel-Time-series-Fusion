@@ -23,6 +23,14 @@ class Denoiser(nn.Module):
             nn.ReLU(),)
         self.middle_layer = nn.Sequential(
             nn.Conv1d(self.hidden_channels, self.hidden_channels, kernel_size=3, padding=1),
+            nn.ReLU(),
+            nn.Conv1d(self.hidden_channels, self.hidden_channels, kernel_size=3, padding=1),
+            nn.ReLU(),
+            nn.Conv1d(self.hidden_channels, self.hidden_channels, kernel_size=3, padding=1),
+            nn.ReLU(),
+            nn.Conv1d(self.hidden_channels, self.hidden_channels, kernel_size=3, padding=1),
+            nn.ReLU(),
+            nn.Conv1d(self.hidden_channels, self.hidden_channels, kernel_size=3, padding=1),
             nn.ReLU(),)
         self.output_layer = nn.Sequential(
             nn.Conv1d(self.hidden_channels, 2, kernel_size=3, padding=1))

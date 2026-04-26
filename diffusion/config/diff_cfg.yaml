@@ -21,11 +21,11 @@ data:
     num_workers: 0
 
 train: 
-    num_epochs: 500
+    num_epochs: 1000
     batch_size: 8
     lr: 1e-4
     weight_decay: 1e-4
-    device: "cuda:0"  
+    device: "cuda:1"  
     print_every: 1
-    save_dir: "data/output/diffusion_h128/"
+    save_dir: "data/output/diffusion_h128_epoch1000/"
   

@@ -1,6 +1,7 @@
 import os, time
 import torch
 import torch.nn as nn
+import matplotlib.pyplot as plt
 
 from tqdm import tqdm
 from train_systems_part.part import TrainSystemPart
@@ -17,6 +18,8 @@ class TrainDiffusion(BaseTrain):
         self.criterion = nn.MSELoss()
         self.optimizer = torch.optim.AdamW(self.denoise_model.parameters(), lr = float(self.train_config.get("lr", 1e-3)))
         self.best_loss = float("inf")
+        self.history = {"diffusion_loss": []}
+
 
 
 
@@ -47,6 +50,8 @@ class TrainDiffusion(BaseTrain):
             progress_bar.set_postfix(loss=batch_loss)
 
         avg_loss = total_loss / batch_count
+        self.history["diffusion_loss"].append(avg_loss)
+
         return avg_loss
     
     def train(self):
@@ -57,6 +62,7 @@ class TrainDiffusion(BaseTrain):
             if avg_loss < self.best_loss:
                 self.best_loss = avg_loss
                 self.save_diffusion_checkpoint(epoch, avg_loss)
+            self.plot_history()
 
 
     def save_diffusion_checkpoint(self, epoch, loss):
@@ -74,6 +80,19 @@ class TrainDiffusion(BaseTrain):
             "monitor_keys": monitor_keys
         }
         torch.save(checkpoint, save_ckpt_path)
+
+    def plot_history(self):
+        
+        y = self.history["diffusion_loss"]
+        x = range(1, len(y) + 1)
+        plt.figure()
+        plt.plot(x, y, label="avg_loss")
+        plt.xlabel("Epoch")
+        plt.ylabel("Loss")
+        # plt.show()
+        plt.legend()
+        plt.savefig(self.save_dir / "diffusion_loss_curve.png")
+        plt.close()
 
 
     
