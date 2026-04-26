@@ -42,5 +42,5 @@ train:
     weight_decay: 1e-4
     device: "cuda:0"  
     print_every: 1
-    save_dir: "data/output/baseline"
+    save_dir: "data/output/mtf"
   

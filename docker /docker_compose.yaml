@@ -54,6 +54,7 @@ services:
       # 设备权限相关环境变量。
       - UDEV=1
       - SHELL=/bin/bash
+      - PYTHONPATH=/workspace
       # 如果容器内需要代理，可取消以下配置并改成实际代理地址。
       # - http_proxy=http://127.0.0.1:7897
       # - https_proxy=http://127.0.0.1:7897

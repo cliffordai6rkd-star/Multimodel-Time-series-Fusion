@@ -14,33 +14,7 @@ from torch.utils.data import DataLoader
 from torch.utils.data import random_split
 from mtf.datatset.data_loader import MultiModalDataset
 from mtf.model.model import MultiModalClassifier
-
-
-def parse_args():   
-    parser = argparse.ArgumentParser(description="train config")
-    parser.add_argument("-c", "--config", 
-                        type=str, 
-                        default="config/img.yaml", 
-                        help="Path to the config file")
-
-    args = parser.parse_args()
-    return args
-
-def load_config(config_path):
-    config_path = Path(config_path)
-    if not os.path.exists(config_path):
-        raise FileNotFoundError
-    else:
-        with open(config_path, "r", encoding="utf-8") as f:
-            config = yaml.safe_load(f)
-
-    return config
-
-def format_time(seconds):
-    seconds = int(seconds) 
-    minutes, seconds = divmod(seconds, 60)
-    hours, minutes = divmod(minutes, 60)
-    return f"{hours:02d}:{minutes:02d}:{seconds:02d}"
+from train_systems_part.part import TrainSystemPart
 
 class Train():
     def __init__(self, config):
@@ -256,25 +230,6 @@ class Train():
         plt.show()
         plt.savefig(self.save_dir / "loss_curve.png")
         plt.close()
-            
-
-
-        
-
-def print_train_summary(args, trainer, train_time):
-    line = "=" * 60
-    print(line)
-    print("Training Finished")
-    print(line)
-    print(f"Config Path     : {args.config}")
-    print(f"Device          : {trainer.device}")
-    print(f"Epochs          : {trainer.train_config['num_epochs']}")
-    print(f"Best Val LOSS   : {trainer.best_val_loss:.4f}")
-    print(f"Checkpoint Dir  : {trainer.save_dir}")
-    print(f"Total Time      : {format_time(train_time)}")
-    print(line)
-
-
 
 
 if __name__ == "__main__":
@@ -282,16 +237,17 @@ if __name__ == "__main__":
         level=log.INFO,
         format="%(asctime)s - %(levelname)s - %(message)s"
     )
+    train_sys = TrainSystemPart()
     start_time = time.perf_counter()
-    args = parse_args()
-    config = load_config(args.config)
+    args = train_sys.parse_args()
+    config = train_sys.load_config(args.config)
     trainer = Train(config)
     # print(f"{len(trainer.train_loader.dataset)},{len(trainer.val_loader.dataset)}")
 
     trainer.train()
     # print(loss_value)
     train_time = time.perf_counter() - start_time
-    print_train_summary(args, trainer, train_time)
+    train_sys.print_train_summary(args, trainer, train_time)
 
 
 

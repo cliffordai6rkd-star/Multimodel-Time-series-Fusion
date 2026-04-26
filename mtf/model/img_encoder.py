@@ -1,8 +1,6 @@
-"""时序图像编码器。
+# ImageEncoder 负责把由时序曲线转换得到的图像视图编码成固定长度特征。
+# 所有可调结构参数都从 config 读取，方便后续横向对比。
 
-ImageEncoder 负责把由时序曲线转换得到的图像视图编码成固定长度特征。
-所有可调结构参数都从 config 读取，方便后续横向对比。
-"""
 
 import torch
 import torch.nn as nn
@@ -15,14 +13,9 @@ def _get(config, key, default):
 
 
 class ImageEncoder(nn.Module):
-    """轻量 CNN 图像编码器。
 
-    输入：
-        image: (batch, input_channels, height, width)
-
-    输出：
-        feature: (batch, feature_dim)
-    """
+        # input :image: (batch, input_channels, height, width)
+        # out_put: feature: (batch, feature_dim)
 
     def __init__(self, config=None):
         super().__init__()
@@ -69,15 +62,15 @@ class ImageEncoder(nn.Module):
 
     def _validate_config(self):
         if self.input_channels < 1:
-            raise ValueError("image_encoder.input_channels 必须大于 0。")
+            raise ValueError("image_encoder.input_channels must > 0")
         if not self.channels:
-            raise ValueError("image_encoder.channels 不能为空。")
+            raise ValueError("image_encoder.channels is empty")
         if len(self.channels) != len(self.pool_every):
-            raise ValueError("image_encoder.channels 和 pool_every 长度必须一致。")
+            raise ValueError("image_encoder.channels and pool_every must have same lenth")
         if self.feature_dim < 1:
-            raise ValueError("image_encoder.feature_dim 必须大于 0。")
+            raise ValueError("image_encoder.feature_dim must > 0")
         if not 0 <= self.dropout < 1:
-            raise ValueError("image_encoder.dropout 必须位于 [0, 1) 区间。")
+            raise ValueError("image_encoder.dropout must between [0, 1)")
 
     def forward(self, image, return_shapes=False):
         shapes = {}

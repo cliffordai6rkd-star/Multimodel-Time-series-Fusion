@@ -1,19 +1,19 @@
-"""双通道时间序列数据增强工具。
+# """双通道时间序列数据增强工具。
 
-用途：
-- 从原始总表 Excel 中读取每个类别的 xxx_high / xxx_low 双通道数据。
-- 将每个类别的曲线重采样到统一长度。
-- 在原始曲线上加入很小的随机点噪声和平滑漂移噪声，生成更多样本。
-- 按类别导出为单样本 Excel，供训练或后续可视化使用。
+# 用途：
+# - 从原始总表 Excel 中读取每个类别的 xxx_high / xxx_low 双通道数据。
+# - 将每个类别的曲线重采样到统一长度。
+# - 在原始曲线上加入很小的随机点噪声和平滑漂移噪声，生成更多样本。
+# - 按类别导出为单样本 Excel，供训练或后续可视化使用。
 
-常用命令：
-python datatset/augment_dataset.py data.xlsx -num 200 --output-dir data
+# 常用命令：
+# python datatset/augment_dataset.py data.xlsx -num 200 --output-dir data
 
-输入格式约定：
-- 必须有时间列，默认列名是 time_s，可通过 --time-column 修改。
-- 每个类别必须成对出现：xxx_high 和 xxx_low。
-- 默认会先过滤孤立异常点，再做重采样和随机增强，避免把异常尖点复制到所有增强样本中。
-"""
+# 输入格式约定：
+# - 必须有时间列，默认列名是 time_s，可通过 --time-column 修改。
+# - 每个类别必须成对出现：xxx_high 和 xxx_low。
+# - 默认会先过滤孤立异常点，再做重采样和随机增强，避免把异常尖点复制到所有增强样本中。
+# """
 
 from __future__ import annotations
 
@@ -25,18 +25,18 @@ import pandas as pd
 
 
 def build_parser() -> argparse.ArgumentParser:
-    """定义命令行参数。
+    # """定义命令行参数。
 
-    关键参数：
-    - excel_path：原始总表 Excel。
-    - -num/--num：每个类别最终生成多少个样本，包含 1 个原始样本。
-    - --target-length：每条曲线重采样后的统一长度。
-    - --noise-scale：逐点随机噪声强度。
-    - --drift-scale：平滑漂移噪声强度。
-    - --outlier-window：异常点过滤的局部窗口大小。
-    - --outlier-threshold：偏离局部趋势多少倍 MAD 才判定为异常点。
-    - --output-dir：增强样本输出目录。
-    """
+    # 关键参数：
+    # - excel_path：原始总表 Excel。
+    # - -num/--num：每个类别最终生成多少个样本，包含 1 个原始样本。
+    # - --target-length：每条曲线重采样后的统一长度。
+    # - --noise-scale：逐点随机噪声强度。
+    # - --drift-scale：平滑漂移噪声强度。
+    # - --outlier-window：异常点过滤的局部窗口大小。
+    # - --outlier-threshold：偏离局部趋势多少倍 MAD 才判定为异常点。
+    # - --output-dir：增强样本输出目录。
+    # """
     parser = argparse.ArgumentParser(
         description="基于极小幅度噪声为双通道时间序列做数据扩充，并按类别导出为单样本 Excel。"
     )
@@ -46,7 +46,7 @@ def build_parser() -> argparse.ArgumentParser:
         "-num",
         "--num",
         type=int,
-        default=20,
+        default=30,
         help="每个类别生成的样本数，包含原始样本，例如 -num 200",
     )
     parser.add_argument(
@@ -58,13 +58,13 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument(
         "--noise-scale",
         type=float,
-        default=0.001,
+        default=0.05,
         help="逐点噪声强度，相对于通道范围的比例，默认千分之一",
     )
     parser.add_argument(
         "--drift-scale",
         type=float,
-        default=0.0005,
+        default=0.01,
         help="平滑漂移强度，相对于通道范围的比例，默认万分之五",
     )
     parser.add_argument("--seed", type=int, default=42, help="随机种子")
